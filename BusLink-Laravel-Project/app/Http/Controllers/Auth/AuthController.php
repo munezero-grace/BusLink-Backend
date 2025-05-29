@@ -25,12 +25,23 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|string|in:passenger,driver',
             'phone_number' => 'required|string|max:15',
+            // 'role' is not required from the frontend
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Only allow 'admin' role for the seeded admin email
+        $role = 'passenger';
+        if (isset($request->role) && $request->role === 'admin' && $request->email === 'admin@buslink.com') {
+            $role = 'admin';
+        }
+
+        // If someone tries to register as driver or admin with a different email, force passenger
+        if (isset($request->role) && $request->role === 'driver') {
+            $role = 'passenger';
         }
 
         // Generate a unique card number
@@ -40,36 +51,11 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => $role,
             'card_number' => $cardNumber,
             'status' => 'active',
             'phone_number' => $request->phone_number,
         ]);
-
-        // If user is a driver, create a driver profile
-        if ($request->role === 'driver') {
-            // Validate driver specific fields
-            $driverValidator = Validator::make($request->all(), [
-                'license_number' => 'required|string|max:50|unique:driver_profiles',
-                'license_expiry' => 'required|date|after:today',
-                'years_experience' => 'required|integer|min:0',
-            ]);
-
-            if ($driverValidator->fails()) {
-                // Delete the user if driver validation fails
-                $user->delete();
-                return response()->json(['errors' => $driverValidator->errors()], 422);
-            }
-
-            DriverProfile::create([
-                'user_id' => $user->id,
-                'license_number' => $request->license_number,
-                'license_expiry' => $request->license_expiry,
-                'years_experience' => $request->years_experience,
-                'performance_rating' => 0,
-                'efficiency_score' => 0,
-            ]);
-        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
