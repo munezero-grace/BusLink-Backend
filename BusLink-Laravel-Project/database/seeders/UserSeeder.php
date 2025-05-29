@@ -14,9 +14,10 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Create Admin User
-        User::create([
-            'name' => 'Admin User',
+        User::updateOrCreate([
             'email' => 'admin@buslink.com',
+        ], [
+            'name' => 'Admin User',
             'password' => Hash::make('password123'),
             'role' => 'admin',
             'card_number' => 'BL-ADMIN001',
@@ -25,9 +26,10 @@ class UserSeeder extends Seeder
         ]);
 
         // Create Driver User
-        User::create([
-            'name' => 'Test Driver',
+        User::updateOrCreate([
             'email' => 'driver@buslink.com',
+        ], [
+            'name' => 'Test Driver',
             'password' => Hash::make('password123'),
             'role' => 'driver',
             'card_number' => 'BL-DRIVER001',
@@ -36,9 +38,10 @@ class UserSeeder extends Seeder
         ]);
 
         // Create Passenger User
-        User::create([
-            'name' => 'Test Passenger',
+        User::updateOrCreate([
             'email' => 'passenger@buslink.com',
+        ], [
+            'name' => 'Test Passenger',
             'password' => Hash::make('password123'),
             'role' => 'passenger',
             'card_number' => 'BL-PASS001',

@@ -16,16 +16,7 @@ use App\Http\Controllers\StationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+
 
 // Basic test route
 Route::get('/test', function() {
@@ -54,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     
+
     // Notification routes for all users
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/count', [NotificationController::class, 'unreadCount']);
@@ -62,8 +54,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
     Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
     
+    
     // Admin routes
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware(['admin'])->group(function () {
         // Driver management
         Route::get('/drivers', [DriverController::class, 'index']);
         Route::patch('/drivers/{driver}/toggle-block', [DriverController::class, 'toggleBlock']);
@@ -128,8 +121,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:passenger')->group(function () {
         Route::apiResource('/bookings', BookingController::class)->only(['index', 'store', 'show', 'destroy']);
         Route::apiResource('/feedback', FeedbackController::class)->only(['store', 'update', 'destroy']);
+
+
         // Traffic and Navigation
         Route::get('/track/{booking}', [TrackingController::class, 'trackBus']);
         Route::get('/best-route', [TrackingController::class, 'findBestRoute']);
+    });
+    
+    // Driver-only routes
+    Route::middleware(['driver'])->group(function () {
+        // Add your driver-only API endpoints here, for example:
+        Route::get('/driver/dashboard', [DriverController::class, 'dashboard']);
+        // ...other driver-only routes...
     });
 });
